@@ -3,6 +3,7 @@ import Home from './components/Home';
 import Header from './components/Header';
 import Search from './components/Search';
 import Register from './components/Register';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/register" element={<Register />} />
       </Routes>
+      <ToastContainer />
     </>
     
   );
