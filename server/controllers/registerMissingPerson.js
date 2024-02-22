@@ -15,8 +15,8 @@ faceapi.env.monkeyPatch({
   ImageData: canvas.ImageData,
 });
 
-const modelsPath = "./faceApiModels"; // Replace with the path to your face-api.js models
-
+// Load models from the disk
+const modelsPath = "./faceApiModels";
 Promise.all([
   faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath),
   faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath),
@@ -41,6 +41,10 @@ const upload = multer({
   },
 });
 
+
+/**TODO
+ * Add validation for multiple faces
+ */
 router.post("/register", upload.single("image"), async (req, res) => {
     const { name, age, gender, areaOfIncident, district, state, reportingPoliceStation, email } = req.body;
     const filename = req.file.filename;
