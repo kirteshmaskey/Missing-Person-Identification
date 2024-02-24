@@ -4,6 +4,7 @@ import Header from './components/Header';
 import Search from './components/Search';
 import Register from './components/Register';
 import { ToastContainer } from 'react-toastify';
+import MissingPeople from './components/MissingPeople';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/missing-people" element={<MissingPeople />} />
         <Route path="/register" element={<Register />} />
       </Routes>
       <ToastContainer />

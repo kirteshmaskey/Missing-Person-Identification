@@ -37,12 +37,11 @@ const isInputvalid = (inputValue) => {
   }
   // Email validation
   else if (!inputValue.email || !inputValue.email.includes('@')){
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    // var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     errors.push("Invalid email")
   }
   // Image validation
   else if (!inputValue.image || !(inputValue.image instanceof File) || !['image/jpg', 'image/jpeg', 'image/png'].includes(inputValue.image.type) || inputValue.image.size > 1048576) {
-    console.log(inputValue.image instanceof File, inputValue.image.type)
     errors.push('Invalid image. The file must be a jpg, jpeg, or png and no larger than 1MB');
   }
 
@@ -61,6 +60,7 @@ const Register = () => {
     state: "",
     reportingPoliceStation: "",
     email: "",
+    missingDate: "",
     image: null
   }); 
   const [isBtnClicked, setIsBtnClicked] = useState(false);
@@ -78,7 +78,6 @@ const Register = () => {
 
   const setValue = (e) => {
     const { name, value } = e.target;
-    // console.log(name, value);
     setinputValue(() => {
         return {
             ...inputValue,
@@ -113,6 +112,7 @@ const Register = () => {
             state: "",
             reportingPoliceStation: "",
             email: "",
+            missingDate: "",
             image: null
           })
         }else {
@@ -169,6 +169,10 @@ const Register = () => {
           <div className="form-floating mb-2">
             <input type="email" className="form-control" onChange={setValue} value={inputValue.email} name="email" id="email" placeholder="Email" required></input>
             <label htmlFor="email">Email</label>
+          </div>
+          <div className="form-floating mb-2">
+            <input type="date" className="form-control" onChange={setValue} value={inputValue.missingDate} name="missingDate" id="missingDate" placeholder="missingDate" max={new Date().toISOString().split("T")[0]} required></input>
+            <label htmlFor="missingDate">Missing Date</label>
           </div>
           <div className="mb-2">
             <label htmlFor="image" className="">Upload Photo</label>

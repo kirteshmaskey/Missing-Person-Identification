@@ -78,7 +78,7 @@ const Home = () => {
             Missing Person Identificaiton is committed to supporting families
             throughout the search process.
           </p>
-          <Link class="btn btn-primary" to="/register" role="button">
+          <Link className="btn btn-primary" to="/register" role="button">
             Report Missing Person
           </Link>
         </div>

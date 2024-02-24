@@ -42,11 +42,12 @@ const upload = multer({
 });
 
 
-/**TODO
- * Add validation for multiple faces
+/** 
+ * Router to handle the missing person registration
+ * TODO: Add validation for multiple faces
  */
 router.post("/register", upload.single("image"), async (req, res) => {
-    const { name, age, gender, areaOfIncident, district, state, reportingPoliceStation, email } = req.body;
+    const { name, age, gender, areaOfIncident, district, state, reportingPoliceStation, email, missingDate } = req.body;
     const filename = req.file.filename;
 
     // Load the uploaded image using face-api.js
@@ -99,6 +100,7 @@ router.post("/register", upload.single("image"), async (req, res) => {
       state: state,
       reportingPoliceStation: reportingPoliceStation,
       email: email,
+      missingDate: missingDate,
       image: filename,
       faceDescriptor: Array.from(uploadedImageDescriptor)
     })
@@ -109,5 +111,36 @@ router.post("/register", upload.single("image"), async (req, res) => {
     res.status(400).send({ error: error.message });
   }
 );
+
+
+
+/**
+ * Router for missing people list page
+ */
+router.get("/missing", async (req, res) => {
+  try {
+    const { page = 0 } = req.query;
+    discard = page * 6;
+    const missingPeople = await missingPerson
+      .find({}, { name: 1, missingDate: 1, image: 1 })
+      .skip(discard)
+      .limit(6);
+
+    const data = missingPeople.map((person) => {
+      const image = fs.readFileSync(`images/uploads/${person.image}`);
+      return {
+        missingId: person._id,
+        image: image.toString("base64"),
+        name: person.name,
+        missingDate: person.missingDate,
+      };
+    });
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 module.exports = router;

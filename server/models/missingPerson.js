@@ -9,6 +9,7 @@ const MissingPersonSchema = new mongoose.Schema({
   state: { type: String, required: true },
   reportingPoliceStation: { type: String, required: true },
   email: { type: String, required: true },
+  missingDate: { type: Date, required: true },
   image: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
   faceDescriptor: { type: Array, required: true },

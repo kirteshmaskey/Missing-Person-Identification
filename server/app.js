@@ -3,7 +3,7 @@ require('./db/conn');
 const express = require("express");
 const cors = require("cors");
 
-const missingPerson = require('./controllers/registerMissingPerson');
+const missingPerson = require('./controllers/missingPersonRoutes');
 
 const app = express();
 const port = process.env.PORT;
