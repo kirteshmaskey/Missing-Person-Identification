@@ -5,6 +5,7 @@ const express = require("express");
 const faceapi = require("face-api.js");
 const canvas = require("canvas");
 const missingPerson = require("../models/missingPerson");
+const getCounterValue = require("./uniqueIdCounter");
 
 const router = new express.Router();
 
@@ -91,17 +92,11 @@ router.post("/register", upload.single("image"), async (req, res) => {
       }
     }
 
+    const counter = await getCounterValue("disabledPerson");
     const newMissingPerson = new missingPerson({
-      name: name,
-      age: age,
-      gender: gender,
-      areaOfIncident: areaOfIncident,
-      district: district,
-      state: state,
-      reportingPoliceStation: reportingPoliceStation,
-      email: email,
-      missingDate: missingDate,
+      ...req.body,
       image: filename,
+      uniqueId: counter,
       faceDescriptor: Array.from(uploadedImageDescriptor)
     })
     const person = await newMissingPerson.save();
@@ -122,17 +117,18 @@ router.get("/missing", async (req, res) => {
     const { page = 0 } = req.query;
     discard = page * 6;
     const missingPeople = await missingPerson
-      .find({}, { name: 1, missingDate: 1, image: 1 })
+      .find({}, { name: 1, uniqueId: 1, image: 1, guardianName: 1, phone: 1})
       .skip(discard)
       .limit(6);
 
     const data = missingPeople.map((person) => {
       const image = fs.readFileSync(`images/uploads/${person.image}`);
       return {
-        missingId: person._id,
+        uniqueId: person.uniqueId,
         image: image.toString("base64"),
         name: person.name,
-        missingDate: person.missingDate,
+        guardianName: person.guardianName,
+        phone: person.phone,
       };
     });
 

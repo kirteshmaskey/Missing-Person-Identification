@@ -42,7 +42,7 @@ const MissingPeople = () => {
   }, []);
 
   const MissingPersonCard = ({ person }) => {
-    const { name, missingDate, missingId, image } = person;
+    const { name, uniqueId, guardianName, phone, image } = person;
     return (
       <div className="col-12 col-sm-6 col-md-4 col-xl-3 mb-4">
         <div className="card h-100">
@@ -56,8 +56,9 @@ const MissingPeople = () => {
           </div>
           <div className="card-body">
             <h5 className="card-title">{name}</h5>
-            <p className="card-text">Missing Since: {missingDate.split('T')[0]}</p>
-            <p className="card-text">Missing Person Id: {missingId}</p>
+            <p className="card-text">Guardian Name: {guardianName}</p>
+            <p className="card-text">Phone: {phone}</p>
+            <p className="card-text">Unique Id: {uniqueId}</p>
             {/* <button className="btn btn-primary">Mark as Found</button> */}
           </div>
         </div>

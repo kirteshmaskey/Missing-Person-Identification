@@ -5,7 +5,7 @@ const Header = () => {
   return (
     <nav className="navbar sticky-top navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand">Lost&Found</Link>
+        <Link to="/" className="navbar-brand">KHOJ</Link>
         <button
           className="navbar-toggler"
           type="button"
