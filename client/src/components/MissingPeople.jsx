@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import MissingPersonCard from "./reusable/MissingPersonCard";
 const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 
 const MissingPeople = () => {
@@ -7,6 +8,7 @@ const MissingPeople = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // To get the Faces of missing person registered in the database.
   const getMissingPeopleData = async () => {
     try {
       const res = await axios.get(`${SERVER_URL}missing?page=${page}`);
@@ -40,31 +42,6 @@ const MissingPeople = () => {
     window.addEventListener("scroll", handelInfiniteScroll);
     return () => window.removeEventListener("scroll", handelInfiniteScroll);
   }, []);
-
-  const MissingPersonCard = ({ person }) => {
-    const { name, uniqueId, guardianName, phone, image } = person;
-    return (
-      <div className="col-12 col-sm-6 col-md-4 col-xl-3 mb-4">
-        <div className="card h-100">
-          <div className="ratio ratio-4x3">
-            <img
-              src={`data:image/jpeg;base64,${image}`}
-              className="card-img-top"
-              alt={image}
-              style={{ objectFit: "cover" }}
-            />
-          </div>
-          <div className="card-body">
-            <h5 className="card-title">{name}</h5>
-            <p className="card-text">Guardian Name: {guardianName}</p>
-            <p className="card-text">Phone: {phone}</p>
-            <p className="card-text">Unique Id: {uniqueId}</p>
-            {/* <button className="btn btn-primary">Mark as Found</button> */}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <>

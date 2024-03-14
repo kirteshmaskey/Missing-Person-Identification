@@ -6,6 +6,7 @@ const faceapi = require("face-api.js");
 const canvas = require("canvas");
 const missingPerson = require("../models/missingPerson");
 const getCounterValue = require("./uniqueIdCounter");
+const { sendFoundMail } = require("./mailingService");
 
 const router = new express.Router();
 
@@ -26,7 +27,10 @@ Promise.all([
   console.log("loaded all the models from the disk");
 });
 
-const storage = multer.diskStorage({
+/**
+ * For storing the uploaded images when user register the missing person
+ */
+const uploadStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./images/uploads");
   },
@@ -36,12 +40,30 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage: storage,
+  storage: uploadStorage,
   limits: {
     fileSize: 1024 * 1024, // Limit file size to 1MB
   },
 });
 
+/**
+ * For storing the search images when user search for the missing person
+ */
+const searchStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./images/searched");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); 
+  },
+});
+
+const search = multer({
+  storage: searchStorage,
+  limits: {
+    fileSize: 1024 * 1024, // Limit file size to 1MB
+  },
+});
 
 /** 
  * Router to handle the missing person registration
@@ -138,5 +160,93 @@ router.get("/missing", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
+
+/**
+ * Router for searching disabled people
+ */
+router.post('/search', search.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const filename = req.file.filename;
+
+    const imageBuffer = fs.readFileSync(`./images/searched/${filename}`);
+    const image = new canvas.Image();
+    image.src = imageBuffer;
+
+    // Detect faces in the uploaded image and compute face descriptors
+    const faceDetectionOptions = new faceapi.SsdMobilenetv1Options({
+      minConfidence: 0.5,
+    });
+
+    const faceDetectionResults = await faceapi
+      .detectAllFaces(image, faceDetectionOptions)
+      .withFaceLandmarks()
+      .withFaceDescriptors();
+
+    if (faceDetectionResults.length === 0) {
+      // No face detected, delete the uploaded image and send a message
+      fs.unlinkSync(`./images/searched/${filename}`); // Delete the image
+      return res.status(203).json({message: "No face detected in the uploaded image."});
+    }
+
+    // Use the face descriptor from the uploaded image for matching
+    const uploadedImageDescriptor = faceDetectionResults[0].descriptor;
+
+    // Query the database to find matching face descriptors
+    const userData = await missingPerson.find({}).exec();
+
+    let matchedImages = [];
+    for (const entry of userData) {
+      const storedImageDescriptor = entry.faceDescriptor; // No need for new faceapi.FaceDescriptor()
+      const distance = faceapi.euclideanDistance(
+        uploadedImageDescriptor,
+        storedImageDescriptor
+      );
+      
+      // You can adjust the threshold for matching
+      if (distance < 0.4) {
+        const image = fs.readFileSync(`images/uploads/${entry.image}`);
+        const matchedImage = {
+          uniqueId: entry.uniqueId,
+          image: image.toString("base64"),
+          name: entry.name,
+          distance: distance,
+          guardianName: entry.guardianName,
+          phone: entry.phone,
+        };
+        matchedImages.push(matchedImage);
+      }
+    }
+    res.status(200).json({ matchedImages });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/send-email-verify-otp', async (req, res) => {
+  try {
+    
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/report-found', async (req, res) => {
+  const { name, email, verifyEmail, foundLocation, activity, uniqueId } = req.body;
+
+  try {
+    const user = await missingPerson.findOne({uniqueId: uniqueId});
+    sendFoundMail(user, req.body);
+    res.status(200).json({ message: "ok" });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;
