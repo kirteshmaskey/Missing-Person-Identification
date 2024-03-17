@@ -97,8 +97,8 @@ const MissingPersonCard = ({ person }) => {
         `${SERVER_URL}report-found`,
         inputValue
       );
-      if(response.status === 200) {
-        toast.success(response.data.message)
+      if (response.status === 200) {
+        toast.success(response.data.message);
         setInputValue({
           ...inputValue,
           name: "",

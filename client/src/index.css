@@ -195,9 +195,25 @@ img {
 * HOME PAGE CSS ENDS
 */
 
+/**
+* MISSING PERSON PAGE STARTS
+*/
 .email-verified {
   background-color: #198754;
   color: #ffffff;
   padding: 0.5rem;
   border-radius: 10px;
 }
+/**
+* MISSING PERSON PAGE ENDS
+*/
+
+/**
+* SEARCH PAGE STARTS
+*/
+.image_container:hover {
+  cursor: pointer;
+}
+/**
+* SEARCH PAGE ENDS
+*/

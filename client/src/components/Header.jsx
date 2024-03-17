@@ -5,7 +5,9 @@ const Header = () => {
   return (
     <nav className="navbar sticky-top navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand">KHOJ</Link>
+        <Link to="/" className="navbar-brand">
+          KHOJ
+        </Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -19,10 +21,18 @@ const Header = () => {
         </button>
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div className="navbar-nav">
-            <Link to="/" className="nav-link">Home</Link>
-            <Link to="/missing-people" className="nav-link">Missing</Link>
-            <Link to="/search" className="nav-link">Search</Link>
-            <Link to="/register" className="nav-link">Register</Link>
+            <Link to="/" className="nav-link">
+              Home
+            </Link>
+            <Link to="/missing-people" className="nav-link">
+              Missing
+            </Link>
+            <Link to="/search" className="nav-link">
+              Search
+            </Link>
+            <Link to="/register" className="nav-link">
+              Register
+            </Link>
           </div>
         </div>
       </div>

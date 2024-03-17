@@ -1,10 +1,10 @@
-import { Route, Routes } from 'react-router-dom';
-import Home from './components/Home';
-import Header from './components/Header';
-import Search from './components/Search';
-import Register from './components/Register';
-import { ToastContainer } from 'react-toastify';
-import MissingPeople from './components/MissingPeople';
+import { Route, Routes } from "react-router-dom";
+import Home from "./components/Home";
+import Header from "./components/Header";
+import Search from "./components/Search";
+import Register from "./components/Register";
+import { ToastContainer } from "react-toastify";
+import MissingPeople from "./components/MissingPeople";
 
 function App() {
   return (
@@ -18,7 +18,6 @@ function App() {
       </Routes>
       <ToastContainer />
     </>
-    
   );
 }
 

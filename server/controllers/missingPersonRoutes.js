@@ -6,7 +6,11 @@ const faceapi = require("face-api.js");
 const canvas = require("canvas");
 const missingPerson = require("../models/missingPerson");
 const getCounterValue = require("./uniqueIdCounter");
-const { sendFoundMail, generateOTP, sendEmailValidationOTPMail } = require("./mailingService");
+const {
+  sendFoundMail,
+  generateOTP,
+  sendEmailValidationOTPMail,
+} = require("./mailingService");
 const OTP = require("../models/OTPSchema");
 const bcryptjs = require("bcryptjs");
 
@@ -37,7 +41,7 @@ const uploadStorage = multer.diskStorage({
     cb(null, "./images/uploads");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); 
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -56,7 +60,7 @@ const searchStorage = multer.diskStorage({
     cb(null, "./images/searched");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); 
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -67,12 +71,14 @@ const search = multer({
   },
 });
 
-/** 
+/**
  * Router to handle the missing person registration
  * TODO: Add validation for multiple faces
  */
-router.post("/register", upload.single("image"), async (req, res) => {
-    const { name, age, gender, areaOfIncident, district, state, reportingPoliceStation, email, missingDate } = req.body;
+router.post(
+  "/register",
+  upload.single("image"),
+  async (req, res) => {
     const filename = req.file.filename;
 
     // Load the uploaded image using face-api.js
@@ -93,7 +99,9 @@ router.post("/register", upload.single("image"), async (req, res) => {
     if (faceDetectionResults.length === 0) {
       // No face detected, delete the uploaded image and send a message
       fs.unlinkSync(`./images/uploads/${filename}`); // Delete the image
-      return res.status(203).json({message: "No face detected in the uploaded image."});
+      return res
+        .status(203)
+        .json({ message: "No face detected in the uploaded image." });
     }
 
     // Use the face descriptor from the uploaded image for matching
@@ -112,7 +120,9 @@ router.post("/register", upload.single("image"), async (req, res) => {
       // You can adjust the threshold for matching
       if (distance < 0.4) {
         fs.unlinkSync(`./images/uploads/${filename}`); // Delete the image
-        return res.status(203).json({message: "The person in image already exist."});
+        return res
+          .status(203)
+          .json({ message: "The person in image already exist." });
       }
     }
 
@@ -121,17 +131,15 @@ router.post("/register", upload.single("image"), async (req, res) => {
       ...req.body,
       image: filename,
       uniqueId: counter,
-      faceDescriptor: Array.from(uploadedImageDescriptor)
-    })
+      faceDescriptor: Array.from(uploadedImageDescriptor),
+    });
     const person = await newMissingPerson.save();
-    res.status(201).json({person});
+    res.status(201).json({ person });
   },
   (error, req, res, next) => {
     res.status(400).send({ error: error.message });
   }
 );
-
-
 
 /**
  * Router for missing people list page
@@ -141,7 +149,7 @@ router.get("/missing", async (req, res) => {
     const { page = 0 } = req.query;
     discard = page * 6;
     const missingPeople = await missingPerson
-      .find({}, { name: 1, uniqueId: 1, image: 1, guardianName: 1, phone: 1})
+      .find({}, { name: 1, uniqueId: 1, image: 1, guardianName: 1, phone: 1 })
       .skip(discard)
       .limit(6);
 
@@ -163,15 +171,13 @@ router.get("/missing", async (req, res) => {
   }
 });
 
-
-
 /**
  * Router for searching disabled people
  */
-router.post('/search', search.single('image'), async (req, res) => {
+router.post("/search", search.single("image"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: "No file uploaded" });
     }
     const filename = req.file.filename;
 
@@ -192,7 +198,9 @@ router.post('/search', search.single('image'), async (req, res) => {
     if (faceDetectionResults.length === 0) {
       // No face detected, delete the uploaded image and send a message
       fs.unlinkSync(`./images/searched/${filename}`); // Delete the image
-      return res.status(203).json({message: "No face detected in the uploaded image."});
+      return res
+        .status(203)
+        .json({ message: "No face detected in the uploaded image." });
     }
 
     // Use the face descriptor from the uploaded image for matching
@@ -208,7 +216,7 @@ router.post('/search', search.single('image'), async (req, res) => {
         uploadedImageDescriptor,
         storedImageDescriptor
       );
-      
+
       // You can adjust the threshold for matching
       if (distance < 0.4) {
         const image = fs.readFileSync(`images/uploads/${entry.image}`);
@@ -223,33 +231,37 @@ router.post('/search', search.single('image'), async (req, res) => {
         matchedImages.push(matchedImage);
       }
     }
-    res.status(200).json({ matchedImages });
+    if (matchedImages.length > 0)
+      res
+        .status(200)
+        .json({ matchedImages: matchedImages, message: "Match found" });
+    else res.status(201).json({ message: "No Match found" });
   } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.post('/send-email-verify-otp', async (req, res) => {
+router.post("/send-email-verify-otp", async (req, res) => {
   const email = req.body.email;
-  try { 
+  try {
     // send email verification otp
     let otp = generateOTP();
     sendEmailValidationOTPMail(email, otp);
     otp = await bcryptjs.hash(otp, 10);
     await OTP.findOneAndUpdate({ email }, { otp }, { new: true, upsert: true });
 
-    res.status(200).json({ message: 'OTP send successfully' });
+    res.status(200).json({ message: "OTP send successfully" });
   } catch (error) {
-    console.log(error.message)
-    console.log(error)
-    res.status(500).json({ error: 'Internal server error' });
+    console.log(error.message);
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.post('/verify-email-otp', async (req, res) => {
-  const { otp }  = req.body;
-  if (otp.trim() ==="" || otp.length !== 6) {
+router.post("/verify-email-otp", async (req, res) => {
+  const { otp } = req.body;
+  if (otp.trim() === "" || otp.length !== 6) {
     return res.status(400).json({ error: "Invalid OTP" });
   }
   try {
@@ -257,7 +269,7 @@ router.post('/verify-email-otp', async (req, res) => {
     if (isOTP) {
       const isCorrectOTP = await bcryptjs.compare(otp, isOTP.otp);
       if (isCorrectOTP) {
-        OTP.deleteOne({ email: req.body.email })
+        OTP.deleteOne({ email: req.body.email });
         res.status(200).json({ message: "Email verified" });
       } else {
         res.status(400).json({ error: "Incorrect OTP" });
@@ -268,21 +280,21 @@ router.post('/verify-email-otp', async (req, res) => {
   } catch (error) {
     console.log(error.message);
     console.log(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.post('/report-found', async (req, res) => {
-  const { name, email, verifyEmail, foundLocation, activity, uniqueId } = req.body;
+router.post("/report-found", async (req, res) => {
+  const { name, email, verifyEmail, foundLocation, activity, uniqueId } =
+    req.body;
 
   try {
-    const user = await missingPerson.findOne({uniqueId: uniqueId});
+    const user = await missingPerson.findOne({ uniqueId: uniqueId });
     sendFoundMail(user, req.body);
     res.status(200).json({ message: "Reported to the family" });
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 module.exports = router;
