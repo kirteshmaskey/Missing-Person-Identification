@@ -4,6 +4,8 @@ import upload from "../asset/images/upload_image.png";
 import axios from "axios";
 import { toast } from "react-toastify";
 import MissingPersonCard from "./reusable/MissingPersonCard";
+import { FaSearch } from "react-icons/fa";
+
 const SERVER_URL = process.env.REACT_APP_SERVER_URL;
 
 function Search(props) {
@@ -105,7 +107,7 @@ function Search(props) {
               className="btn btn-primary mt-3"
               disabled={btnClicked}
             >
-              {btnClicked ? "Searching..." : "Search"}
+              {btnClicked ? "Searching..." : <> Search {<FaSearch />}</>}
             </button>
           </div>
         </div>

@@ -144,12 +144,50 @@ router.post(
 /**
  * Router for missing people list page
  */
-router.get("/missing", async (req, res) => {
+router.post("/missing", async (req, res) => {
+  let { gender, age, complexion, hair, height, habit } = req.body;
+  let query = {};
+
+  if (gender) {
+    gender = gender.toLowerCase();
+    query.gender = gender;
+  }
+  if (complexion) {
+    complexion = complexion.toLowerCase();
+    query.complexion = complexion;
+  }
+  if (hair) {
+    hair = hair.toLowerCase();
+    query.hair = hair;
+  }
+  if (habit) {
+    habit = habit.toLowerCase();
+    query.habit = habit;
+  }
+  if (height) {
+    height = parseInt(height);
+    query.height = { $gte: height - 5, $lte: height + 5 };
+  }
+  if (age) {
+    age = parseInt(age);
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - (age + 5));
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() - (age - 5));
+    query.dob = { $gte: minDate, $lte: maxDate };
+  }
+
   try {
     const { page = 0 } = req.query;
     discard = page * 6;
     const missingPeople = await missingPerson
-      .find({}, { name: 1, uniqueId: 1, image: 1, guardianName: 1, phone: 1 })
+      .find(query, {
+        name: 1,
+        uniqueId: 1,
+        image: 1,
+        guardianName: 1,
+        phone: 1,
+      })
       .skip(discard)
       .limit(6);
 
@@ -254,7 +292,6 @@ router.post("/send-email-verify-otp", async (req, res) => {
     res.status(200).json({ message: "OTP send successfully" });
   } catch (error) {
     console.log(error.message);
-    console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -279,7 +316,6 @@ router.post("/verify-email-otp", async (req, res) => {
     }
   } catch (error) {
     console.log(error.message);
-    console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

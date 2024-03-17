@@ -31,7 +31,6 @@ const MissingPersonCard = ({ person }) => {
 
   // To verify the users email before reporting found missing
   const sendEmailVerificationOTP = async () => {
-    console.log(inputValue.email);
     if (
       inputValue.email.trim() === "" ||
       !/\S+@\S+\.\S+/.test(inputValue.email)
@@ -59,7 +58,6 @@ const MissingPersonCard = ({ person }) => {
   };
 
   const verifyEmailOTP = async () => {
-    console.log(inputValue.verifyEmail);
     if (
       inputValue.verifyEmail.trim() === "" ||
       inputValue.verifyEmail.length !== 6
@@ -71,8 +69,6 @@ const MissingPersonCard = ({ person }) => {
           otp: inputValue.verifyEmail,
           email: inputValue.email,
         });
-        console.log(response.data);
-        console.log(response.status);
         if (response.status === 200) {
           setSendEmail(false);
           setVerifyOTP(false);
