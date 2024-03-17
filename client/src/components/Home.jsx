@@ -30,7 +30,7 @@ const Home = () => {
         <div className="home-container">
           <div className="home-banner-container">
             <div className="home-text-section">
-              <h1 className="primary-heading">Reunite. Restore. Reconnect.</h1>
+              <h1 className="primary-heading">Identify. Locate. Reunite.</h1>
               <p className="primary-text">
                 The most advanced platform for identifying missing persons.
                 Using cutting-edge technology to bring families back togeather.

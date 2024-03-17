@@ -10,6 +10,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/**
+* HOME PAGE CSS STARTS
+*/
 p {
   font-size: 1.2rem;
 }
@@ -187,4 +190,14 @@ img {
     margin-bottom: 0.8rem !important;
     text-align: center;
   }
+}
+/**
+* HOME PAGE CSS ENDS
+*/
+
+.email-verified {
+  background-color: #198754;
+  color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 10px;
 }

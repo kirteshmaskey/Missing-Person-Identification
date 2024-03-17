@@ -6,7 +6,9 @@ const faceapi = require("face-api.js");
 const canvas = require("canvas");
 const missingPerson = require("../models/missingPerson");
 const getCounterValue = require("./uniqueIdCounter");
-const { sendFoundMail } = require("./mailingService");
+const { sendFoundMail, generateOTP, sendEmailValidationOTPMail } = require("./mailingService");
+const OTP = require("../models/OTPSchema");
+const bcryptjs = require("bcryptjs");
 
 const router = new express.Router();
 
@@ -229,9 +231,43 @@ router.post('/search', search.single('image'), async (req, res) => {
 });
 
 router.post('/send-email-verify-otp', async (req, res) => {
-  try {
-    
+  const email = req.body.email;
+  try { 
+    // send email verification otp
+    let otp = generateOTP();
+    sendEmailValidationOTPMail(email, otp);
+    otp = await bcryptjs.hash(otp, 10);
+    await OTP.findOneAndUpdate({ email }, { otp }, { new: true, upsert: true });
+
+    res.status(200).json({ message: 'OTP send successfully' });
   } catch (error) {
+    console.log(error.message)
+    console.log(error)
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/verify-email-otp', async (req, res) => {
+  const { otp }  = req.body;
+  if (otp.trim() ==="" || otp.length !== 6) {
+    return res.status(400).json({ error: "Invalid OTP" });
+  }
+  try {
+    const isOTP = await OTP.findOne({ email: req.body.email });
+    if (isOTP) {
+      const isCorrectOTP = await bcryptjs.compare(otp, isOTP.otp);
+      if (isCorrectOTP) {
+        OTP.deleteOne({ email: req.body.email })
+        res.status(200).json({ message: "Email verified" });
+      } else {
+        res.status(400).json({ error: "Incorrect OTP" });
+      }
+    } else {
+      res.status(400).json({ error: "OTP expired" });
+    }
+  } catch (error) {
+    console.log(error.message);
+    console.log(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -242,7 +278,7 @@ router.post('/report-found', async (req, res) => {
   try {
     const user = await missingPerson.findOne({uniqueId: uniqueId});
     sendFoundMail(user, req.body);
-    res.status(200).json({ message: "ok" });
+    res.status(200).json({ message: "Reported to the family" });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }

@@ -11,7 +11,7 @@ const MissingPersonCard = ({ person }) => {
     verifyEmail: "",
     phone: "",
     foundLocation: "",
-    activity: ""
+    activity: "",
   });
   const [sendEmail, setSendEmail] = useState(true);
   const [verifyOTP, setVerifyOTP] = useState(false);
@@ -22,31 +22,70 @@ const MissingPersonCard = ({ person }) => {
   const setValue = (e) => {
     const { name, value } = e.target;
     setInputValue(() => {
-        return {
-            ...inputValue,
-            [name]: value
-        }
-    })
+      return {
+        ...inputValue,
+        [name]: value,
+      };
+    });
   };
 
-  // To verift the users email before reporting found missing
+  // To verify the users email before reporting found missing
   const sendEmailVerificationOTP = async () => {
-    try {
-      const response = await axios.post(`${SERVER_URL}send-email-verify-otp`, {
-        email: inputValue.email,
-      });
-      if(response.data.status) {
-        setSendEmail(false);
-        setVerifyOTP(true);
-        toast.success(response.data.message);
-      }else {
-        toast.error(response.data.error);
+    console.log(inputValue.email);
+    if (
+      inputValue.email.trim() === "" ||
+      !/\S+@\S+\.\S+/.test(inputValue.email)
+    ) {
+      toast.warning("Please enter valid email.");
+    } else {
+      try {
+        const response = await axios.post(
+          `${SERVER_URL}send-email-verify-otp`,
+          {
+            email: inputValue.email,
+          }
+        );
+        if (response.status === 200) {
+          setSendEmail(false);
+          setVerifyOTP(true);
+          toast.success(response.data.message);
+        } else {
+          toast.error(response.data.error);
+        }
+      } catch (error) {
+        toast.error(error.response.data.error);
       }
-    } catch (error) {
-      console.error('Error sending OTP:', error.response.data);
-      toast.error(error.message)
     }
-  }
+  };
+
+  const verifyEmailOTP = async () => {
+    console.log(inputValue.verifyEmail);
+    if (
+      inputValue.verifyEmail.trim() === "" ||
+      inputValue.verifyEmail.length !== 6
+    ) {
+      toast.warning("Please enter valid OTP");
+    } else {
+      try {
+        const response = await axios.post(`${SERVER_URL}verify-email-otp`, {
+          otp: inputValue.verifyEmail,
+          email: inputValue.email,
+        });
+        console.log(response.data);
+        console.log(response.status);
+        if (response.status === 200) {
+          setSendEmail(false);
+          setVerifyOTP(false);
+          toast.success(response.data.message);
+        } else {
+          toast.error(response.data.error);
+        }
+      } catch (error) {
+        console.error("Error sending OTP:", error.response.data);
+        toast.error(error.response.data.error);
+      }
+    }
+  };
 
   // To report that the missing person is identified as missing.
   const handleReportFoundClick = async () => {
@@ -54,19 +93,24 @@ const MissingPersonCard = ({ person }) => {
     inputValue["uniqueId"] = id;
 
     try {
-      const response = await axios.post(`${SERVER_URL}report-found`, inputValue);
-      console.log('Response:', response.data);
-      setInputValue({
-        ...inputValue,
-        name: "",
-        email: "",
-        verifyEmail: "",
-        phone: "",
-        foundLocation: "",
-        activity: ""
-      })
+      const response = await axios.post(
+        `${SERVER_URL}report-found`,
+        inputValue
+      );
+      if(response.status === 200) {
+        toast.success(response.data.message)
+        setInputValue({
+          ...inputValue,
+          name: "",
+          email: "",
+          verifyEmail: "",
+          phone: "",
+          foundLocation: "",
+          activity: "",
+        });
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast.error(error.message);
     }
   };
@@ -75,7 +119,7 @@ const MissingPersonCard = ({ person }) => {
     setFoundUniqueId(id);
     localStorage.setItem("uniqueId", id);
     // To Show the modal
-    const modal = document.getElementById('ReportFoundModel');
+    const modal = document.getElementById("ReportFoundModel");
     if (modal) {
       const bootstrapModal = new window.bootstrap.Modal(modal);
       bootstrapModal.show();
@@ -102,7 +146,7 @@ const MissingPersonCard = ({ person }) => {
             <button
               type="button"
               className="btn btn-success"
-              onClick={()=>handleShowModelButtonClick(uniqueId)}
+              onClick={() => handleShowModelButtonClick(uniqueId)}
             >
               Mark Found
             </button>
@@ -167,6 +211,7 @@ const MissingPersonCard = ({ person }) => {
                           id="email"
                           placeholder="Email"
                           required
+                          disabled={!sendEmail && !verifyOTP}
                         ></input>
                         <label htmlFor="email">Email</label>
                       </div>
@@ -183,14 +228,36 @@ const MissingPersonCard = ({ person }) => {
                               id="verifyEmail"
                               placeholder="Verify Email"
                               required
+                              disabled={!verifyOTP}
                             />
                             <label htmlFor="verifyEmail">Verify Email</label>
                           </div>
                         </div>
                         <div className="col-12 col-md-3">
-                          <div className="d-flex justify-content-center align-items center">
-                            {sendEmail && <button type="button" className="btn btn-primary" onClick={sendEmailVerificationOTP}>Send OTP</button> }
-                            {verifyOTP && <button type="button" className="btn btn-primary" onClick={sendEmailVerificationOTP}>Verify OTP</button> }
+                          <div className="d-flex justify-content-center align-items center mb-2">
+                            {sendEmail && (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={sendEmailVerificationOTP}
+                              >
+                                Send OTP
+                              </button>
+                            )}
+                            {verifyOTP && (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={verifyEmailOTP}
+                              >
+                                Verify OTP
+                              </button>
+                            )}
+                            {!verifyOTP && !sendEmail && (
+                              <span className="email-verified">
+                                Email Verified
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -211,7 +278,9 @@ const MissingPersonCard = ({ person }) => {
                     </div>
 
                     <div className="card p-1 my-2">
-                      <h4 className="text-center my-2 text-primary">Information about the missing</h4>
+                      <h4 className="text-center my-2 text-primary">
+                        Information about the missing
+                      </h4>
                       <div className="form-floating mb-2">
                         <input
                           type="text"
@@ -252,9 +321,15 @@ const MissingPersonCard = ({ person }) => {
               >
                 Close
               </button>
-              <button type="button" className="btn btn-primary" onClick={handleReportFoundClick}>
-                Report
-              </button>
+              {!verifyOTP && !sendEmail && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleReportFoundClick}
+                >
+                  Report
+                </button>
+              )}
             </div>
           </div>
         </div>
